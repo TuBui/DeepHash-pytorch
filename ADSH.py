@@ -8,16 +8,19 @@ import torch.nn as nn
 from tqdm import tqdm
 import time
 import numpy as np
+import argparse
+
 
 torch.multiprocessing.set_sharing_strategy('file_system')
-
+INPUT = '/vol/vssp/cvpnobackup_orig/scratch_4weeks/tb0035/datasets/imagenet'
+OUT = '/vol/research/contentprov/projects/content_prov/models/deephash/ADSH'
 
 # ADSH(AAAI2018)
 # paper [Asymmetric Deep Supervised Hashing](https://cs.nju.edu.cn/lwj/paper/AAAI18_ADSH.pdf)
 # code1 [ADSH matlab + pytorch](https://github.com/jiangqy/ADSH-AAAI2018)
 # code2 [ADSH_pytorch](https://github.com/TreezzZ/ADSH_PyTorch)
 
-def get_config():
+def get_config(data_path='./data/imagenet', save_path='save/ADSH'):
     config = {
         "gamma": 200,
         "num_samples": 2000,
@@ -30,14 +33,15 @@ def get_config():
         "info": "[ADSH]",
         "resize_size": 256,
         "crop_size": 224,
-        "batch_size": 64,
-        "net": AlexNet,
-        "dataset": "cifar10-1",
+        "batch_size": 32,
+        "net": ResNet,
+        "dataset": "imagenet",
+        "data_path": data_path,
         # "dataset": "nuswide_21",
-        "save_path": "save/ADSH",
+        "save_path": save_path,
         # "device":torch.device("cpu"),
-        "device": torch.device("cuda:1"),
-        "bit_list": [48],
+        "device": torch.device("cuda:0"),
+        "bit_list": [64],
     }
     # if config["dataset"] == "nuswide_21":
     #     config["gamma"] = 0
@@ -155,7 +159,12 @@ def train_val(config, bit):
 
 
 if __name__ == "__main__":
-    config = get_config()
+    parser = argparse.ArgumentParser(description='Benchmarking nn models')
+    parser.add_argument('-i', '--input', default=INPUT, help='data')
+    parser.add_argument('-o', '--output', default=OUT, help='output dir')
+    args = parser.parse_args()
+    config = get_config(data_path=args.input, save_path=args.output)
+    
     print(config)
     for bit in config["bit_list"]:
         train_val(config, bit)

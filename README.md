@@ -1,5 +1,12 @@
 # DeepHash-pytorch
 Implementation of Some Deep Hash Algorithms Baseline.
+Fork from (https://github.com/swuxyj/DeepHash-pytorch)[https://github.com/swuxyj/DeepHash-pytorch] with minor changes in configuration for easier local settings.
+
+Changes:
+- Fixed a bug in GreedyHash.
+- get_config: add default data_path and save_path, change default bit list (64), batch_size (mostly 32), architecture (resnet), dataset (imagenet), device (cuda:0)
+- add argparse and support input arguments for data_path and save_path
+
 
 # How to run
 My environment is python==3.7.0  torchvision==0.5.0  pytorch==1.4.0  

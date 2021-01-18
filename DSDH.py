@@ -6,15 +6,19 @@ import torch
 import torch.optim as optim
 import time
 import numpy as np
+import argparse
+
 
 torch.multiprocessing.set_sharing_strategy('file_system')
+INPUT = '/vol/vssp/cvpnobackup_orig/scratch_4weeks/tb0035/datasets/imagenet'
+OUT = '/vol/research/contentprov/projects/content_prov/models/deephash/DSDH'
 
 
 # DSDH(NIPS2017)
 # paper [Deep Supervised Discrete Hashing](https://papers.nips.cc/paper/6842-deep-supervised-discrete-hashing.pdf)
 # code [DSDH_PyTorch](https://github.com/TreezzZ/DSDH_PyTorch)
 
-def get_config():
+def get_config(data_path='./data/imagenet', save_path='save/DFH'):
     config = {
         "alpha": 1,
         "nu": 1,
@@ -26,25 +30,28 @@ def get_config():
         "info": "[DSDH]",
         "resize_size": 256,
         "crop_size": 224,
-        "batch_size": 128,
-        "net": AlexNet,
-        # "net":ResNet,
+        "batch_size": 64,
+        # "net": AlexNet,
+        "net":ResNet,
         # "dataset": "cifar10",
-        "dataset": "cifar10-1",
+        # "dataset": "cifar10-1",
         # "dataset": "cifar10-2",
         # "dataset": "coco",
         # "dataset": "mirflickr",
         # "dataset": "voc2012",
-        # "dataset": "imagenet",
+        "dataset": "imagenet",
         # "dataset": "nuswide_21",
         # "dataset": "nuswide_21_m",
         # "dataset": "nuswide_81_m",
+        "data_path": data_path,
+        # "dataset": "nuswide_21",
+        "save_path": save_path,
         "epoch": 150,
         "test_map": 5,
         # "save_path": "save/DSDH",
         # "device":torch.device("cpu"),
-        "device": torch.device("cuda:1"),
-        "bit_list": [48],
+        "device": torch.device("cuda:0"),
+        "bit_list": [64],
     }
     config = config_dataset(config)
     return config
@@ -165,7 +172,11 @@ def train_val(config, bit):
 
 
 if __name__ == "__main__":
-    config = get_config()
+    parser = argparse.ArgumentParser(description='Benchmarking nn models')
+    parser.add_argument('-i', '--input', default=INPUT, help='data')
+    parser.add_argument('-o', '--output', default=OUT, help='output dir')
+    args = parser.parse_args()
+    config = get_config(data_path=args.input, save_path=args.output)
     print(config)
     for bit in config["bit_list"]:
         train_val(config, bit)

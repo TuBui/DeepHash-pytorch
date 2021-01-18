@@ -8,9 +8,12 @@ import time
 import numpy as np
 from scipy.linalg import hadamard  # direct import  hadamrd matrix from scipy
 import random
+import argparse
+
 
 torch.multiprocessing.set_sharing_strategy('file_system')
-
+INPUT = '/vol/vssp/cvpnobackup_orig/scratch_4weeks/tb0035/datasets/imagenet'
+OUT = '/vol/research/contentprov/projects/content_prov/models/deephash/CSQ'
 
 # CSQ(CVPR2020)
 # paper [Central Similarity Quantization for Efficient Image and Video Retrieval](https://openaccess.thecvf.com/content_CVPR_2020/papers/Yuan_Central_Similarity_Quantization_for_Efficient_Image_and_Video_Retrieval_CVPR_2020_paper.pdf)
@@ -28,14 +31,14 @@ torch.multiprocessing.set_sharing_strategy('file_system')
 # [CSQ] epoch:20, bit:64, dataset:imagenet, MAP:0.881, Best MAP: 0.881, paper:0.873
 # [CSQ] epoch:10, bit:64, dataset:nuswide_21_m, MAP:0.844, Best MAP: 0.844, paper:0.839
 # [CSQ] epoch:40, bit:64, dataset:coco, MAP:0.870, Best MAP: 0.883, paper:0.861
-def get_config():
+def get_config(data_path='./data/imagenet', save_path='save/ADSH'):
     config = {
         "lambda": 0.0001,
         "optimizer": {"type": optim.RMSprop, "optim_params": {"lr": 1e-5, "weight_decay": 10 ** -5}},
         "info": "[CSQ]",
         "resize_size": 256,
         "crop_size": 224,
-        "batch_size": 64,
+        "batch_size": 32,
         # "net": AlexNet,
         "net": ResNet,
         # "dataset": "cifar10-1",
@@ -43,10 +46,13 @@ def get_config():
         # "dataset": "coco",
         # "dataset": "nuswide_21",
         # "dataset": "nuswide_21_m",
+        "data_path": data_path,
+        # "dataset": "nuswide_21",
+        "save_path": save_path,
         "epoch": 150,
         "test_map": 10,
         # "device":torch.device("cpu"),
-        "device": torch.device("cuda:1"),
+        "device": torch.device("cuda:0"),
         "bit_list": [64],
     }
     config = config_dataset(config)
@@ -180,7 +186,12 @@ def train_val(config, bit):
 
 
 if __name__ == "__main__":
-    config = get_config()
+    parser = argparse.ArgumentParser(description='Benchmarking nn models')
+    parser.add_argument('-i', '--input', default=INPUT, help='data')
+    parser.add_argument('-o', '--output', default=OUT, help='output dir')
+    args = parser.parse_args()
+    config = get_config(data_path=args.input, save_path=args.output)
+
     print(config)
     for bit in config["bit_list"]:
         train_val(config, bit)
